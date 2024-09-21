@@ -14,6 +14,40 @@ type TestCase struct {
 }
 
 
+func TestNewUnsignedBigIntFromStr(t *testing.T) {
+	testcases := [] struct {
+		A string
+		Expect my_math.BigInt
+		isError bool
+	}{
+		{"201"     , my_math.NewUnsignedBigInt(uint64(201))     , false},
+		{"2001"    , my_math.NewUnsignedBigInt(uint64(2001))    , false},
+		{"0"       , my_math.NewUnsignedBigInt(uint64(0))       , false},
+		{"1"       , my_math.NewUnsignedBigInt(uint64(1))       , false},
+		{"10000005", my_math.NewUnsignedBigInt(uint64(10000005)), false},
+		{"1"       , my_math.NewUnsignedBigInt(uint64(1))       , false},
+		{"01"      , my_math.NewUnsignedBigInt(uint64(1))       , true},
+		{"-11"     , my_math.NewUnsignedBigInt(uint64(1))       , true},
+		{"-iasdfs" , my_math.NewUnsignedBigInt(uint64(1))       , true},
+		{"1000s"   , my_math.NewUnsignedBigInt(uint64(1))       , true},
+		{""        , my_math.NewUnsignedBigInt(uint64(1))       , true},
+	}
+
+	for _, testcase := range testcases {
+		A, err := my_math.NewUnsignedBigIntFromStr(testcase.A)
+		if err != nil {
+			if testcase.isError {
+				continue
+			}
+			t.Fatal(err)
+		}
+		if !A.Equal(&testcase.Expect) {
+			t.Errorf("A: %s, Expect: %s, Real: %s\n", testcase.A, testcase.Expect, A)
+		}
+	}
+}
+
+
 func TestAdd(t *testing.T) {
 	testcases := []TestCase{
 		{
