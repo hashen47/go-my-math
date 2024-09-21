@@ -2,6 +2,7 @@ package my_math
 
 
 import (
+	"fmt"
 	"strconv"
 )
 
@@ -53,9 +54,12 @@ func (b *BigInt) Len() uint64 {
 
 
 func (b *BigInt) Copy() BigInt {
+	digits := make([]uint64, 0)
+	digits = append(digits, b.digits...)
+
 	return BigInt{
 		sign: b.sign,
-		digits: b.digits,
+		digits: digits,
 		len: b.len,
 	}
 }
@@ -73,6 +77,14 @@ func (b1 *BigInt) Equal(b2 *BigInt) bool {
 	}
 
 	return true
+}
+
+
+func (b *BigInt) Get(index uint64) (uint64, error) {
+	if b.len <= index {
+		return uint64(0), fmt.Errorf("index cannot be exceed the number length\n")
+	}
+	return b.digits[index], nil
 }
 
 
@@ -135,22 +147,57 @@ func (b1 *BigInt) Add(b2 *BigInt) {
 
 
 func (b1 *BigInt) Mult(b2 *BigInt) {
-	temp1 := NewUnsignedBigInt(uint(1))
-	temp2 := NewUnsignedBigInt(uint(0))
-	b1Copy := b1.Copy()
-	*b1 = NewUnsignedBigInt(uint(0))
+	temp1 := NewUnsignedBigInt(uint(0))
+	multParts := make([]BigInt, 0)
+	tenthPower := uint64(0)
 
-	if temp2.Equal(b2) {
+	if temp1.Equal(b2) || temp1.Equal(b1) {
+		*b1 = temp1 
 		return
 	}
 
-	for {
-		if temp2.Equal(b2) {
-			break
+	for i := uint64(0); i < b2.len; i++ {
+		n1, _ := b2.Get(i)
+		temp := uint64(0)
+		moveNextVal := uint64(0)
+
+		b1Copy := b1.Copy()
+		if n1 == uint64(0) {
+			tenthPower += 1
+			continue
 		}
-		b1.Add(&b1Copy)
-		temp2.Add(&temp1)
+
+		for j := uint64(0); j < b1Copy.len; j++ {
+			n2, _ := b1Copy.Get(j)
+			temp = n1 * n2 + moveNextVal
+			b1Copy.digits[j] = temp % 10 
+			moveNextVal = uint64(temp / uint64(10))
+		}
+
+		if moveNextVal != uint64(0) {
+			b1Copy.digits = append(b1Copy.digits, moveNextVal)
+			b1Copy.len++
+		}
+
+		if (tenthPower > 0) {
+			tempSlice := make([]uint64, 0)
+			for k := uint64(0); k < tenthPower; k++ {
+				tempSlice = append(tempSlice, 0)
+				b1Copy.len++
+			}
+			tempSlice = append(tempSlice, b1Copy.digits...)
+			b1Copy.digits = tempSlice
+		}
+
+		multParts = append(multParts, b1Copy)
+		tenthPower += 1
 	}
+
+	for _, m := range multParts {
+		temp1.Add(&m)
+	}
+
+	*b1 = temp1
 }
 
 
