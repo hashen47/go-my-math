@@ -4,6 +4,7 @@ package my_math
 import (
 	"fmt"
 	"strconv"
+	"regexp"
 )
 
 
@@ -45,6 +46,36 @@ func NewUnsignedBigInt[V uint|uint8|uint32|uint64](number V) BigInt {
 		len: len,
 		digits: digits,
 	}
+}
+
+
+func NewUnsignedBigIntFromStr(number string) (BigInt, error) {
+	isMatch, err := regexp.MatchString("^[1-9][0-9]*$|^0$", number)
+	if err != nil {
+		return BigInt{}, err
+	}
+
+	if !isMatch {
+		return BigInt{}, fmt.Errorf(`"%s" is not match the pattern`, number)
+	}
+
+
+	digits := make([]uint64, 0)
+	for _, ch := range number {
+		n, err := strconv.ParseUint(string(ch), 10, 64)
+		if err != nil {
+			return BigInt{}, err
+		}
+		temp := make([]uint64, 0)
+		temp = append(temp, n)
+		digits = append(temp, digits...)
+	}
+
+	return BigInt{
+		sign: None,
+		digits: digits,
+		len: uint64(len(digits)),
+	}, nil
 }
 
 
