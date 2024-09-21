@@ -1,3 +1,3 @@
-module github.com/hashen47/go-my-math/v1
+module github.com/hashen47/go-my-math
 
 go 1.22.2
